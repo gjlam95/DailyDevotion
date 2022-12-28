@@ -1,21 +1,49 @@
-import logging
 import os
-from telegram import Update
-from telegram.ext import ContextTypes, CommandHandler, ApplicationBuilder
+from telegram.ext.updater import Updater
+from telegram.update import Update
+from telegram.ext.callbackcontext import CallbackContext
+from telegram.ext.commandhandler import CommandHandler
+from telegram.ext.messagehandler import MessageHandler
+from telegram.ext.filters import Filters
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logging.warning(f'Got message from {update.effective_chat.username}')
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Hehe")
+updater = Updater(os.environ.get('BOT_TOKEN'),
+                  use_context=True)
 
-async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry '%s' is not a valid command" % update.message.text)
 
-if __name__ == '__main__':
-    assert (bot_token := os.environ.get('BOT_TOKEN')), 'Please, set environment ' \
-                                                   'var TOKEN with your bot token'
-    application = ApplicationBuilder().token(bot_token).build()
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "Hello! Please write\
+        /help to see the commands available.")
 
-    start_handler = CommandHandler('start', start)
-    application.add_handler(start_handler)
 
-    application.run_polling()
+def help(update: Update, context: CallbackContext):
+    update.message.reply_text("""Available Commands :-
+    /ymi - Access YMI Devotion Site""")
+
+
+def ymi_url(update: Update, context: CallbackContext):
+    update.message.reply_text("YMI =>\
+    https://ymi.today/devotionals/")
+
+
+def unknown(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "Sorry '%s' is not a valid command" % update.message.text)
+
+
+def unknown_text(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "Sorry I can't recognize you , you said '%s'" % update.message.text)
+
+
+updater.dispatcher.add_handler(CommandHandler('start', start))
+updater.dispatcher.add_handler(CommandHandler('ymi', ymi_url))
+updater.dispatcher.add_handler(CommandHandler('help', help))
+updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown))
+updater.dispatcher.add_handler(MessageHandler(
+    Filters.command, unknown))  # Filters out unknown commands
+
+# Filters out unknown messages.
+updater.dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
+
+updater.start_polling()
