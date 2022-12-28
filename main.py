@@ -7,6 +7,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logging.warning(f'Got message from {update.effective_chat.username}')
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Hehe")
 
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry '%s' is not a valid command" % update.message.text)
 
 if __name__ == '__main__':
     assert (bot_token := os.environ.get('BOT_TOKEN')), 'Please, set environment ' \
